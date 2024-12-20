@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .content {
+            text-align: center;
+            margin: 20px;
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h2>Confirme sua Inscrição</h2>
+        <p>Obrigado por se inscrever na newsletter de notícias sobre Golang!</p>
+        <p>Por favor, clique no botão abaixo para confirmar sua inscrição:</p>
+        <a href="{{.ConfirmLink}}" class="button">Confirmar Inscrição</a>
+        <p>Se você não se inscreveu, ignore este e-mail.</p>
+    </div>
+</body>
+</html>

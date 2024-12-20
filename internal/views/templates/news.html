@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .content {
+            margin: 20px;
+        }
+        .unsubscribe {
+            font-size: 0.8em;
+            color: #888;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h2>{{.NewsTitle}}</h2>
+        <p>{{.NewsDescription}}</p>
+        <p><a href="{{.NewsLink}}">Leia mais</a></p>
+    </div>
+    <div class="unsubscribe">
+        <p>Não deseja mais receber nossos e-mails? <a href="{{.UnsubscribeLink}}">Clique aqui</a> para desinscrever.</p>
+    </div>
+</body>
+</html>
