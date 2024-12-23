@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os/signal"
 	"sync"
 	"syscall"
@@ -83,8 +84,9 @@ func runEchoServer(ctx context.Context, shutdown chan struct{}) {
 }
 
 func runAsynqServer(ctx context.Context) {
+	host := env.GetEnv("REDIS_HOST", "gonews-redis")
 	password := env.GetEnv("REDIS_PASSWORD", "redis-password")
-	redisOpt := asynq.RedisClientOpt{Addr: "gonews-redis:6379", Password: password}
+	redisOpt := asynq.RedisClientOpt{Addr: fmt.Sprintf("%s:6379", host), Password: password}
 
 	srv := asynq.NewServer(redisOpt, asynq.Config{
 		Concurrency: 10,

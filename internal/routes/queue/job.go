@@ -3,7 +3,7 @@ package queue
 import (
 	"context"
 
-	"github.com/CarlosEduardoAD/go-news/internal/config/env"
+	"github.com/CarlosEduardoAD/go-news/internal/config/task_queue"
 	jobcontrollers "github.com/CarlosEduardoAD/go-news/internal/controllers/job_controllers"
 	"github.com/CarlosEduardoAD/go-news/internal/shared"
 	"github.com/hibiken/asynq"
@@ -11,8 +11,7 @@ import (
 )
 
 func HandleEmailDelivery(ctx context.Context, t *asynq.Task) error {
-	password := env.GetEnv("REDIS_PASSWORD", "redis-password")
-	client := asynq.NewClient(asynq.RedisClientOpt{Addr: "gonews-redis:6379", Password: password})
+	client := task_queue.GenerateAsynqClient()
 
 	controller := jobcontrollers.NewJobController(client)
 	err := controller.ExecuteTask(ctx, t)
