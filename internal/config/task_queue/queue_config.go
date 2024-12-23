@@ -1,6 +1,7 @@
 package task_queue
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"sync"
@@ -22,7 +23,7 @@ func GenerateAsynqClient() *asynq.Client {
 		log.Println(host)
 		log.Println(password)
 
-		redisOpt := asynq.RedisClientOpt{Addr: fmt.Sprintf("%s:6379", host), Password: password}
+		redisOpt := asynq.RedisClientOpt{Addr: fmt.Sprintf("%s:6379", host), Password: password, TLSConfig: &tls.Config{}}
 		client := asynq.NewClient(redisOpt)
 
 		instance = client

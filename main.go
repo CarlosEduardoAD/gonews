@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"os/signal"
@@ -91,7 +92,7 @@ func runAsynqServer(ctx context.Context) {
 	log.Println("host_redis: ", host)
 	log.Println("host_password: ", password)
 
-	redisOpt := asynq.RedisClientOpt{Addr: fmt.Sprintf("%s:6379", host), Password: password}
+	redisOpt := asynq.RedisClientOpt{Addr: fmt.Sprintf("%s:6379", host), Password: password, TLSConfig: &tls.Config{}}
 
 	srv := asynq.NewServer(redisOpt, asynq.Config{
 		Concurrency: 10,
