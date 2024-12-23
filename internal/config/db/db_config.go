@@ -19,8 +19,8 @@ var (
 func GenereateDB() *gorm.DB {
 	once.Do(func() {
 		host := env.GetEnv("POSTGRES_HOST", "db")
-		password := env.GetEnv("POSTGRES_USER", "admin")
-		user := env.GetEnv("POSTGRES_PASSWORD", "admin")
+		password := env.GetEnv("POSTGRES_PASSWORD", "admin")
+		user := env.GetEnv("POSTGRES_USER", "admin")
 
 		log.Println(host)
 		log.Println(password)
