@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/CarlosEduardoAD/go-news/internal/config/env"
@@ -25,7 +26,8 @@ func GenereateDB() *gorm.DB {
 		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 		if err != nil {
-			panic("failed to connect database")
+			log.Println("Erro ao conectar ao banco de dados")
+			log.Fatal(err)
 		}
 
 		instance = db

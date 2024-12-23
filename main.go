@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os/signal"
 	"sync"
 	"syscall"
@@ -111,6 +112,7 @@ func runAsynqServer(ctx context.Context) {
 		srv.Shutdown()
 	case err := <-errChan:
 		if err != nil {
+			log.Printf("Erro no servidor Asynq: %v", err)
 			logger.Fatalf("Erro no servidor Asynq: %v", err)
 		}
 	}
