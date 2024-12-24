@@ -26,7 +26,7 @@ func GenereateDB() *gorm.DB {
 		log.Println(password)
 		log.Println(user)
 
-		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=gonews port=5432 sslmode=require", host, user, password)
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=railway port=5432 sslmode=require", host, user, password)
 		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 		if err != nil {
