@@ -92,7 +92,9 @@ func runAsynqServer(ctx context.Context) {
 	log.Println("host_redis: ", host)
 	log.Println("host_password: ", password)
 
-	redisOpt := asynq.RedisClientOpt{Addr: fmt.Sprintf("%s:6379", host), Password: password, TLSConfig: &tls.Config{}}
+	redisOpt := asynq.RedisClientOpt{Addr: fmt.Sprintf("%s:6379", host), Password: password, TLSConfig: &tls.Config{}, DialTimeout: 10 * time.Second, // Aumente este valor se necessário
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second}
 
 	srv := asynq.NewServer(redisOpt, asynq.Config{
 		Concurrency: 10,

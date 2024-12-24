@@ -3,8 +3,8 @@ package task_queue
 import (
 	"crypto/tls"
 	"fmt"
-	"log"
 	"sync"
+	"time"
 
 	"github.com/CarlosEduardoAD/go-news/internal/config/env"
 	"github.com/hibiken/asynq"
@@ -20,10 +20,9 @@ func GenerateAsynqClient() *asynq.Client {
 		host := env.GetEnv("REDIS_HOST", "gonews-redis")
 		password := env.GetEnv("REDIS_PASSWORD", "redis-password")
 
-		log.Println(host)
-		log.Println(password)
-
-		redisOpt := asynq.RedisClientOpt{Addr: fmt.Sprintf("%s:6379", host), Password: password, TLSConfig: &tls.Config{}}
+		redisOpt := asynq.RedisClientOpt{Addr: fmt.Sprintf("%s:6379", host), Password: password, TLSConfig: &tls.Config{}, DialTimeout: 10 * time.Second, // Aumente este valor se necessário
+			ReadTimeout:  10 * time.Second,
+			WriteTimeout: 10 * time.Second}
 		client := asynq.NewClient(redisOpt)
 
 		instance = client
