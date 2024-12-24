@@ -1,6 +1,7 @@
 package env
 
 import (
+	"log"
 	"os"
 
 	"github.com/CarlosEduardoAD/go-news/internal/config/logging"
@@ -10,11 +11,11 @@ import (
 func GetEnv(key, fallback string) string {
 	logger := logging.GenerateLogrus()
 
-	// Carregar o arquivo .env somente em ambiente local (opcional)
 	if _, err := os.Stat(".env"); err == nil {
 		err := godotenv.Load(".env")
 		if err != nil {
-			logger.Fatalf("Erro ao carregar o arquivo .env: %v", err)
+			log.Println("Erro ao carregar o arquivo .env")
+			logger.Printf("Erro ao carregar o arquivo .env: %v", err)
 		}
 	}
 
