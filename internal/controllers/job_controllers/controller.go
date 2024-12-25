@@ -10,7 +10,6 @@ import (
 	"github.com/CarlosEduardoAD/go-news/internal/config/db"
 	"github.com/CarlosEduardoAD/go-news/internal/config/env"
 	newsapi_client "github.com/CarlosEduardoAD/go-news/internal/config/news-api"
-	"github.com/CarlosEduardoAD/go-news/internal/config/task_queue"
 	emailmodel "github.com/CarlosEduardoAD/go-news/internal/models/email_model"
 	jobmodel "github.com/CarlosEduardoAD/go-news/internal/models/job_model"
 	"github.com/CarlosEduardoAD/go-news/internal/shared"
@@ -108,12 +107,8 @@ func (jc *JobController) ExecuteTask(ctx context.Context, t *asynq.Task) error {
 		return err
 	}
 
-	client := task_queue.GenerateAsynqClient()
-
-	defer client.Close()
-
 	email_job := jobmodel.NewSendEmailJob(emailJobPayload.Id, emailJobPayload.Email, utils.ReturnNextMonday(), "send_email")
-	err = email_job.AddAndEnqueueTask(client)
+	err = email_job.AddAndEnqueueTask(jc.Client)
 
 	if err != nil {
 		return err
