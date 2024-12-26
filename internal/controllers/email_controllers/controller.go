@@ -43,6 +43,8 @@ func NewEmailController(db *gorm.DB, task_manager *asynq.Client) *EmailControlle
 func (ec *EmailController) CheckInEmail(e *emailmodel.EmailModel) (string, error) {
 	err := e.Create(ec.db)
 
+	server_url := env.GetEnv("SERVER_URL", "http://localhost:3000")
+
 	if err != nil {
 		return "", err
 	}
@@ -56,7 +58,7 @@ func (ec *EmailController) CheckInEmail(e *emailmodel.EmailModel) (string, error
 		return "", shared.GenerateError(err)
 	}
 
-	doubleOptInLink := fmt.Sprintf("http://localhost:3000/api/v1/emails/authorize?token=%s", token)
+	doubleOptInLink := fmt.Sprintf("%s/emails/authorize?token=%s", server_url, token)
 
 	port, err := strconv.Atoi(MAILTRAP_PORT)
 
