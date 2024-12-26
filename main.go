@@ -99,7 +99,8 @@ func runAsynqServer(ctx context.Context) {
 	srv := asynq.NewServer(redisOpt, asynq.Config{
 		Concurrency: 10,
 		Queues: map[string]int{
-			"default": 1,
+			"default":  1,
+			"critical": 1,
 		},
 		GroupMaxDelay: 5 * time.Second,
 	})
