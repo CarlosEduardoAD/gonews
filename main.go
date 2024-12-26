@@ -97,7 +97,7 @@ func runAsynqServer(ctx context.Context) {
 		WriteTimeout: 20 * time.Second}
 
 	srv := asynq.NewServer(redisOpt, asynq.Config{
-		Concurrency: 10,
+		Concurrency: 20,
 		Queues: map[string]int{
 			"default":  1,
 			"critical": 1,
