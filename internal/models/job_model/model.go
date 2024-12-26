@@ -70,7 +70,7 @@ func (sej *SendEmailJob) AddAndEnqueueTask(task_manager *asynq.Client) error {
 
 	task := asynq.NewTask(sej.Type, payloadBytes)
 
-	_, err = task_manager.Enqueue(task, asynq.ProcessIn(1*time.Minute), asynq.MaxRetry(2), asynq.Timeout(30*time.Second), asynq.Queue("critical"))
+	_, err = task_manager.Enqueue(task, asynq.ProcessIn(1*time.Minute), asynq.MaxRetry(0), asynq.Timeout(30*time.Second), asynq.Queue("critical"))
 
 	if err != nil {
 		return err
