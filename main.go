@@ -13,7 +13,6 @@ import (
 	"github.com/CarlosEduardoAD/go-news/internal/config/db"
 	"github.com/CarlosEduardoAD/go-news/internal/config/env"
 	"github.com/CarlosEduardoAD/go-news/internal/config/logging"
-	"github.com/CarlosEduardoAD/go-news/internal/config/task_queue"
 	jobcontrollers "github.com/CarlosEduardoAD/go-news/internal/controllers/job_controllers"
 	"github.com/CarlosEduardoAD/go-news/internal/middlewares"
 	emailmodel "github.com/CarlosEduardoAD/go-news/internal/models/email_model"
@@ -66,10 +65,8 @@ func runEchoServer(ctx context.Context, shutdown chan struct{}) {
 		e := echo.New()
 		db := db.GenereateDB()
 		db.AutoMigrate(emailmodel.EmailModel{})
-		queue_client := task_queue.GenerateAsynqClient()
 
 		e.Use(middlewares.DbMiddleware(db))
-		e.Use(middlewares.QueueMiddleware(queue_client))
 		e.Use(middlewares.LogrusMiddleware)
 
 		route_group := e.Group("/api/v1/emails")
@@ -124,9 +121,8 @@ func runWorkerServer(ctx context.Context) {
 }
 
 func (c *Context) HandleEmailDelivery(work *work.Job) error {
-	client := task_queue.GenerateAsynqClient()
 
-	controller := jobcontrollers.NewJobController(client)
+	controller := jobcontrollers.NewJobController()
 	err := controller.ExecuteTask(work)
 
 	log.Println("err: ", err)

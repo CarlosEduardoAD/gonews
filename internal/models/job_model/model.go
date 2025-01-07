@@ -9,7 +9,6 @@ import (
 	"github.com/CarlosEduardoAD/go-news/internal/utils"
 	"github.com/gocraft/work"
 	"github.com/gomodule/redigo/redis"
-	"github.com/hibiken/asynq"
 )
 
 var host = env.GetEnv("REDIS_HOST", "gonews-redis")
@@ -74,7 +73,7 @@ func (sej *SendEmailJob) VerifyMonday() error {
 	return nil
 }
 
-func (sej *SendEmailJob) AddAndEnqueueTask(task_manager *asynq.Client) error {
+func (sej *SendEmailJob) AddAndEnqueueTask() error {
 	err := sej.validate()
 
 	if err != nil {
@@ -85,7 +84,9 @@ func (sej *SendEmailJob) AddAndEnqueueTask(task_manager *asynq.Client) error {
 		return err
 	}
 
-	_, err = enqueuer.EnqueueIn("send_email", 15, work.Q{"id": sej.Id, "email": sej.Email, "ttd": sej.TTD})
+	// Não esquecer de colocar o next monday
+
+	_, err = enqueuer.EnqueueIn("send_email", 300, work.Q{"id": sej.Id, "email": sej.Email, "ttd": sej.TTD})
 
 	if err != nil {
 		return err

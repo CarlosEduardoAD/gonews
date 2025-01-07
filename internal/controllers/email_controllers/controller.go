@@ -109,7 +109,7 @@ func (ec *EmailController) AuthorizeEmail(token string) error {
 		return err
 	}
 
-	job_controller := jobcontrollers.NewJobController(ec.task_manager)
+	job_controller := jobcontrollers.NewJobController()
 	err = job_controller.CreateTask(jobmodel.NewSendEmailJob(email.Id, email.Email, utils.ReturnNextMonday(), "send_email"))
 
 	if err != nil {

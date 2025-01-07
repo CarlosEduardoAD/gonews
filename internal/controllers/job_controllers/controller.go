@@ -17,26 +17,18 @@ import (
 	"github.com/gocraft/work"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/hibiken/asynq"
 )
 
-type JobController struct {
-	Client *asynq.Client
-}
+type JobController struct{}
 
 // required: client
-func NewJobController(client *asynq.Client) *JobController {
-	return &JobController{
-		Client: client,
-	}
+func NewJobController() *JobController {
+	return &JobController{}
 }
 
 func (jc *JobController) CreateTask(task *jobmodel.SendEmailJob) error {
-	if jc.Client == nil {
-		return errors.New("you've created a controller without a valid connection, this is only allowed if you want to execute a task")
-	}
 
-	err := task.AddAndEnqueueTask(jc.Client)
+	err := task.AddAndEnqueueTask()
 
 	if err != nil {
 		return err
@@ -106,7 +98,7 @@ func (jc *JobController) ExecuteTask(job *work.Job) error {
 	}
 
 	email_job := jobmodel.NewSendEmailJob(uuid.NewString(), payloadEmail, utils.ReturnNextMonday(), "send_email")
-	err = email_job.AddAndEnqueueTask(jc.Client)
+	err = email_job.AddAndEnqueueTask()
 
 	if err != nil {
 		return err

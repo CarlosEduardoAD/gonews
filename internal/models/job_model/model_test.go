@@ -5,9 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/CarlosEduardoAD/go-news/internal/config/env"
 	"github.com/CarlosEduardoAD/go-news/internal/utils"
-	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,21 +29,16 @@ func TestValidVerifyMonday(t *testing.T) {
 func TestInvalidAddAndEnqueueTask(t *testing.T) {
 	sendEmailJob := NewSendEmailJob("", "", int64(time.Now().Second()), "")
 
-	err := sendEmailJob.AddAndEnqueueTask(nil)
+	err := sendEmailJob.AddAndEnqueueTask()
 
 	assert.NotNil(t, err)
 }
 
 func TestValidAddAndEnqueueTask(t *testing.T) {
 
-	password := env.GetEnv("REDIS_PASSWORD", "redis-password")
-	client := asynq.NewClient(asynq.RedisClientOpt{Addr: "gonews-redis:6379", Password: password})
-
-	defer client.Close()
-
 	sendEmailJob := NewSendEmailJob(utils.GenerateRandomString(8), fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)), int64(time.Now().Second()), "send_email")
 
-	err := sendEmailJob.AddAndEnqueueTask(client)
+	err := sendEmailJob.AddAndEnqueueTask()
 
 	assert.Nil(t, err)
 }
