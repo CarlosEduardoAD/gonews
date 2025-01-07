@@ -16,6 +16,8 @@ func HandleEmailDelivery(work *work.Job) error {
 	controller := jobcontrollers.NewJobController(client)
 	err := controller.ExecuteTask(work)
 
+	log.Println("err: ", err)
+
 	if err != nil {
 		log.Println("deu bizil: ", err)
 		logrus.Error(shared.GenerateError(err))

@@ -1,11 +1,8 @@
 package jobmodel
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-	"time"
 
 	"github.com/CarlosEduardoAD/go-news/internal/config/env"
 	"github.com/CarlosEduardoAD/go-news/internal/models/consts"
@@ -84,16 +81,11 @@ func (sej *SendEmailJob) AddAndEnqueueTask(task_manager *asynq.Client) error {
 		return err
 	}
 
-	payload := map[string]interface{}{"id": sej.Id, "email": sej.Email, "ttd": sej.TTD}
-	payloadBytes, err := json.Marshal(payload)
-
 	if err != nil {
 		return err
 	}
 
-	log.Println("payloadBytes: ", payloadBytes)
-
-	_, err = enqueuer.EnqueueIn("send_email", int64(time.Second*15), work.Q{"id": sej.Id, "email": sej.Email, "ttd": sej.TTD})
+	_, err = enqueuer.Enqueue("send_email", work.Q{"id": sej.Id, "email": sej.Email, "ttd": sej.TTD})
 
 	if err != nil {
 		return err

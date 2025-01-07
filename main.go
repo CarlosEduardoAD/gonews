@@ -129,6 +129,8 @@ func (c *Context) HandleEmailDelivery(work *work.Job) error {
 	controller := jobcontrollers.NewJobController(client)
 	err := controller.ExecuteTask(work)
 
+	log.Println("err: ", err)
+
 	if err != nil {
 		log.Println("err: ", err)
 		logrus.Error(shared.GenerateError(err))
