@@ -85,7 +85,7 @@ func (sej *SendEmailJob) AddAndEnqueueTask(task_manager *asynq.Client) error {
 		return err
 	}
 
-	_, err = enqueuer.Enqueue("send_email", work.Q{"id": sej.Id, "email": sej.Email, "ttd": sej.TTD})
+	_, err = enqueuer.EnqueueIn("send_email", 15, work.Q{"id": sej.Id, "email": sej.Email, "ttd": sej.TTD})
 
 	if err != nil {
 		return err
