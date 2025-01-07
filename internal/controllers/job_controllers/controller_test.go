@@ -18,7 +18,7 @@ func TestInvalidCreateTask(t *testing.T) {
 	client := asynq.NewClient(asynq.RedisClientOpt{Addr: "gonews-redis:6379", Password: password})
 
 	controller := NewJobController(client)
-	myTask := jobmodel.NewSendEmailJob("", "", time.Now(), "")
+	myTask := jobmodel.NewSendEmailJob("", "", int64(time.Now().Second()), "")
 
 	err := controller.CreateTask(myTask)
 

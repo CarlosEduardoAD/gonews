@@ -2,7 +2,6 @@ package jobcontrollers
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -15,7 +14,9 @@ import (
 	"github.com/CarlosEduardoAD/go-news/internal/shared"
 	"github.com/CarlosEduardoAD/go-news/internal/utils"
 	"github.com/barthr/newsapi"
+	"github.com/gocraft/work"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
 )
 
@@ -44,25 +45,22 @@ func (jc *JobController) CreateTask(task *jobmodel.SendEmailJob) error {
 	return nil
 }
 
-func (jc *JobController) ExecuteTask(ctx context.Context, t *asynq.Task) error {
-	var emailJobPayload jobmodel.SendEmailJob
+func (jc *JobController) ExecuteTask(job *work.Job) error {
 	var email_model emailmodel.EmailModel
 
-	if err := json.Unmarshal(t.Payload(), &emailJobPayload); err != nil {
-		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
-	}
+	payloadEmail := job.ArgString("email")
 
 	session := db.GenereateDB()
 
 	newsApiClient := newsapi_client.GenerateNewsApi()
 
-	articleResponse, err := newsApiClient.GetEverything(ctx, &newsapi.EverythingParameters{Keywords: "golang"})
+	articleResponse, err := newsApiClient.GetEverything(context.Background(), &newsapi.EverythingParameters{Keywords: "golang"})
 
 	if err != nil {
 		return err
 	}
 
-	email, err := email_model.SelectOneByEmail(session, emailJobPayload.Email)
+	email, err := email_model.SelectOneByEmail(session, payloadEmail)
 
 	if err != nil {
 		return err
@@ -87,7 +85,7 @@ func (jc *JobController) ExecuteTask(ctx context.Context, t *asynq.Task) error {
 
 	email_sender := shared.GenerateEmailSender(host, port, username, password)
 
-	unsubscribeToken, err := shared.GenerateToken(jwt.MapClaims{"email": emailJobPayload.Email})
+	unsubscribeToken, err := shared.GenerateToken(jwt.MapClaims{"email": payloadEmail})
 
 	if err != nil {
 		return err
@@ -101,13 +99,13 @@ func (jc *JobController) ExecuteTask(ctx context.Context, t *asynq.Task) error {
 		return err
 	}
 
-	err = email_sender.SendEmail(emailJobPayload.Email, "Sua newsletter de go de hoje chegou!", template)
+	err = email_sender.SendEmail(payloadEmail, "Sua newsletter de go de hoje chegou!", template)
 
 	if err != nil {
 		return err
 	}
 
-	email_job := jobmodel.NewSendEmailJob(emailJobPayload.Id, emailJobPayload.Email, utils.ReturnNextMonday(), "send_email")
+	email_job := jobmodel.NewSendEmailJob(uuid.NewString(), payloadEmail, utils.ReturnNextMonday(), "send_email")
 	err = email_job.AddAndEnqueueTask(jc.Client)
 
 	if err != nil {

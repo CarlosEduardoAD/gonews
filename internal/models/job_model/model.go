@@ -3,20 +3,42 @@ package jobmodel
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
 	"time"
 
+	"github.com/CarlosEduardoAD/go-news/internal/config/env"
 	"github.com/CarlosEduardoAD/go-news/internal/models/consts"
+	"github.com/CarlosEduardoAD/go-news/internal/utils"
+	"github.com/gocraft/work"
+	"github.com/gomodule/redigo/redis"
 	"github.com/hibiken/asynq"
 )
 
-type SendEmailJob struct {
-	Id    string    `json:"id"`
-	Email string    `json:"email"`
-	TTD   time.Time `json:"ttd"` // Time To Deliver
-	Type  string    `json:"type"`
+var host = env.GetEnv("REDIS_HOST", "gonews-redis")
+
+var redisPool = &redis.Pool{
+	MaxActive: 5,
+	MaxIdle:   5,
+	Wait:      true,
+	Dial: func() (redis.Conn, error) {
+		return redis.Dial("tcp",
+			fmt.Sprintf("%s:6379", host),
+			redis.DialPassword("Carloseduardo08#"))
+	},
 }
 
-func NewSendEmailJob(id, email string, ttd time.Time, task_type string) *SendEmailJob {
+// Make an enqueuer with a particular namespace
+var enqueuer = work.NewEnqueuer("go_news_namespace", redisPool)
+
+type SendEmailJob struct {
+	Id    string `json:"id"`
+	Email string `json:"email"`
+	TTD   int64  `json:"ttd"` // Time To Deliver
+	Type  string `json:"type"`
+}
+
+func NewSendEmailJob(id, email string, ttd int64, task_type string) *SendEmailJob {
 	return &SendEmailJob{
 		Id:    id,
 		Email: email,
@@ -34,7 +56,7 @@ func (sej *SendEmailJob) validate() error {
 		return errors.New("invalid email")
 	}
 
-	if sej.TTD.IsZero() {
+	if sej.TTD == 0 {
 		return errors.New("invalid time to deliver")
 	}
 
@@ -47,7 +69,7 @@ func (sej *SendEmailJob) validate() error {
 }
 
 func (sej *SendEmailJob) VerifyMonday() error {
-	if int(sej.TTD.Weekday()) != 1 {
+	if sej.TTD != utils.ReturnNextMonday() {
 		return errors.New("newsletter can only be delivered on mondays")
 	}
 
@@ -68,9 +90,9 @@ func (sej *SendEmailJob) AddAndEnqueueTask(task_manager *asynq.Client) error {
 		return err
 	}
 
-	task := asynq.NewTask(sej.Type, payloadBytes)
+	log.Println("payloadBytes: ", payloadBytes)
 
-	_, err = task_manager.Enqueue(task, asynq.ProcessIn(1*time.Minute), asynq.MaxRetry(0), asynq.Timeout(30*time.Second), asynq.Queue("critical"))
+	_, err = enqueuer.EnqueueIn("send_email", int64(time.Second*15), work.Q{"id": sej.Id, "email": sej.Email, "ttd": sej.TTD})
 
 	if err != nil {
 		return err

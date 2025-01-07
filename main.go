@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"log"
+	"os"
 	"os/signal"
 	"sync"
 	"syscall"
@@ -14,17 +14,21 @@ import (
 	"github.com/CarlosEduardoAD/go-news/internal/config/env"
 	"github.com/CarlosEduardoAD/go-news/internal/config/logging"
 	"github.com/CarlosEduardoAD/go-news/internal/config/task_queue"
+	jobcontrollers "github.com/CarlosEduardoAD/go-news/internal/controllers/job_controllers"
 	"github.com/CarlosEduardoAD/go-news/internal/middlewares"
 	emailmodel "github.com/CarlosEduardoAD/go-news/internal/models/email_model"
 	http_server "github.com/CarlosEduardoAD/go-news/internal/routes/http_server"
-	"github.com/CarlosEduardoAD/go-news/internal/routes/queue"
-	"github.com/hibiken/asynq"
+	"github.com/CarlosEduardoAD/go-news/internal/shared"
+	"github.com/gocraft/work"
+	"github.com/gomodule/redigo/redis"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
 
 var wg sync.WaitGroup
 var logger *logrus.Logger
+
+type Context struct{}
 
 func main() {
 
@@ -44,7 +48,7 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		runAsynqServer(ctx)
+		runWorkerServer(ctx)
 	}()
 
 	<-ctx.Done()
@@ -85,46 +89,49 @@ func runEchoServer(ctx context.Context, shutdown chan struct{}) {
 	logger.Info("Servidor HTTP encerrado com sucesso")
 }
 
-func runAsynqServer(ctx context.Context) {
+func runWorkerServer(ctx context.Context) {
 	host := env.GetEnv("REDIS_HOST", "gonews-redis")
-	password := env.GetEnv("REDIS_PASSWORD", "redis-password")
 
-	log.Println("host_redis: ", host)
-	log.Println("host_password: ", password)
-
-	redisOpt := asynq.RedisClientOpt{Addr: fmt.Sprintf("%s:6379", host), Password: password, TLSConfig: &tls.Config{}, DialTimeout: 10 * time.Second, // Aumente este valor se necessário
-		ReadTimeout:  20 * time.Second,
-		WriteTimeout: 20 * time.Second, PoolSize: 20}
-
-	srv := asynq.NewServer(redisOpt, asynq.Config{
-		Concurrency: 20,
-		Queues: map[string]int{
-			"default":  1,
-			"critical": 1,
+	var redisPool = &redis.Pool{
+		MaxActive: 5,
+		MaxIdle:   5,
+		Wait:      true,
+		Dial: func() (redis.Conn, error) {
+			return redis.Dial("tcp",
+				fmt.Sprintf("%s:6379", host),
+				redis.DialPassword("Carloseduardo08#"))
 		},
-		GroupMaxDelay: 5 * time.Second,
-	})
-
-	mux := asynq.NewServeMux()
-	mux.HandleFunc("send_email", queue.HandleEmailDelivery)
-
-	errChan := make(chan error, 1)
-
-	go func() {
-		logger.Infoln("Servidor Asynq rodando...")
-		errChan <- srv.Run(mux)
-	}()
-
-	select {
-	case <-ctx.Done():
-		logger.Warningln("Encerrando servidor Asynq...")
-		srv.Shutdown()
-	case err := <-errChan:
-		if err != nil {
-			log.Printf("Erro no servidor Asynq: %v", err)
-			logger.Fatalf("Erro no servidor Asynq: %v", err)
-		}
 	}
 
+	pool := work.NewWorkerPool(Context{}, 10, "go_news_namespace", redisPool)
+
+	pool.Job("send_email", (*Context).HandleEmailDelivery)
+
+	pool.Start()
+
+	log.Println("Worker server iniciado com sucesso")
+
+	// Wait for a signal to quit:
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
+	<-signalChan
+
+	// Stop the pool
+	pool.Stop()
+
 	logger.Infoln("Servidor Asynq encerrado com sucesso")
+}
+
+func (c *Context) HandleEmailDelivery(work *work.Job) error {
+	client := task_queue.GenerateAsynqClient()
+
+	controller := jobcontrollers.NewJobController(client)
+	err := controller.ExecuteTask(work)
+
+	if err != nil {
+		logrus.Error(shared.GenerateError(err))
+		return err
+	}
+
+	return nil
 }

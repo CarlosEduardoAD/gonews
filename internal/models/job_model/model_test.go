@@ -12,7 +12,7 @@ import (
 )
 
 func TestInvalidVerifyMonday(t *testing.T) {
-	sendEmailJob := NewSendEmailJob("1", "test@gmail.com", time.Now(), "")
+	sendEmailJob := NewSendEmailJob("1", "test@gmail.com", int64(time.Now().Second()), "")
 
 	err := sendEmailJob.VerifyMonday()
 
@@ -29,7 +29,7 @@ func TestValidVerifyMonday(t *testing.T) {
 }
 
 func TestInvalidAddAndEnqueueTask(t *testing.T) {
-	sendEmailJob := NewSendEmailJob("", "", time.Now(), "")
+	sendEmailJob := NewSendEmailJob("", "", int64(time.Now().Second()), "")
 
 	err := sendEmailJob.AddAndEnqueueTask(nil)
 
@@ -43,7 +43,7 @@ func TestValidAddAndEnqueueTask(t *testing.T) {
 
 	defer client.Close()
 
-	sendEmailJob := NewSendEmailJob(utils.GenerateRandomString(8), fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)), time.Now(), "send_email")
+	sendEmailJob := NewSendEmailJob(utils.GenerateRandomString(8), fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)), int64(time.Now().Second()), "send_email")
 
 	err := sendEmailJob.AddAndEnqueueTask(client)
 

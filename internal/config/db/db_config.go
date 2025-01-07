@@ -21,8 +21,15 @@ func GenereateDB() *gorm.DB {
 		host := env.GetEnv("POSTGRES_HOST", "db")
 		password := env.GetEnv("POSTGRES_PASSWORD", "admin")
 		user := env.GetEnv("POSTGRES_USER", "admin")
+		database := env.GetEnv("POSTGRES_DB", "gonews")
 
-		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=railway port=5432 sslmode=require", host, user, password)
+		sslmode := "disable"
+
+		if database == "railway" {
+			sslmode = "require"
+		}
+
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=%s", host, user, password, database, sslmode)
 		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 		if err != nil {

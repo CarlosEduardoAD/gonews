@@ -17,7 +17,7 @@ func GenerateRandomString(n int) string {
 
 }
 
-func ReturnNextMonday() time.Time {
+func ReturnNextMonday() int64 {
 	weekDays := 7
 	now := time.Now().Local()
 	nowDay := int(now.Weekday())
@@ -25,7 +25,7 @@ func ReturnNextMonday() time.Time {
 	daysUntilNextMonday := (8 - nowDay) % weekDays
 	nextMonday := now.AddDate(0, 0, daysUntilNextMonday)
 
-	return nextMonday
+	return int64(nextMonday.Unix())
 }
 
 type EmailData struct {
