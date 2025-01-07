@@ -91,6 +91,7 @@ func runEchoServer(ctx context.Context, shutdown chan struct{}) {
 
 func runWorkerServer(ctx context.Context) {
 	host := env.GetEnv("REDIS_HOST", "gonews-redis")
+	password := env.GetEnv("REDIS_PASSWORD", "Carloseduardo08#")
 
 	var redisPool = &redis.Pool{
 		MaxActive: 5,
@@ -99,7 +100,7 @@ func runWorkerServer(ctx context.Context) {
 		Dial: func() (redis.Conn, error) {
 			return redis.Dial("tcp",
 				fmt.Sprintf("%s:6379", host),
-				redis.DialPassword("Carloseduardo08#"))
+				redis.DialPassword(password))
 		},
 	}
 

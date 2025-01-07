@@ -16,6 +16,7 @@ import (
 )
 
 var host = env.GetEnv("REDIS_HOST", "gonews-redis")
+var password = env.GetEnv("REDIS_PASSWORD", "Carloseduardo08#")
 
 var redisPool = &redis.Pool{
 	MaxActive: 5,
@@ -24,7 +25,7 @@ var redisPool = &redis.Pool{
 	Dial: func() (redis.Conn, error) {
 		return redis.Dial("tcp",
 			fmt.Sprintf("%s:6379", host),
-			redis.DialPassword("Carloseduardo08#"))
+			redis.DialPassword(password))
 	},
 }
 
