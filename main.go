@@ -130,6 +130,7 @@ func (c *Context) HandleEmailDelivery(work *work.Job) error {
 	err := controller.ExecuteTask(work)
 
 	if err != nil {
+		log.Println("err: ", err)
 		logrus.Error(shared.GenerateError(err))
 		return err
 	}
