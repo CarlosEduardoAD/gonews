@@ -32,6 +32,8 @@ func TestValidCreateTask(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+// Escreva uma função de teste para o ResendEmail
+
 // func TestExecuteTask(t *testing.T) {
 // 	controller := NewJobController(nil)
 // 	err := controller.ExecuteTask()

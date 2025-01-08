@@ -13,13 +13,11 @@ import (
 	"github.com/CarlosEduardoAD/go-news/internal/shared"
 	"github.com/CarlosEduardoAD/go-news/internal/utils"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/hibiken/asynq"
 	"gorm.io/gorm"
 )
 
 type EmailController struct {
-	db           *gorm.DB
-	task_manager *asynq.Client
+	db *gorm.DB
 }
 
 const (
@@ -33,10 +31,9 @@ var (
 	MAILTRAP_PASSWORD = env.GetEnv("MAILTRAP_PASSWORD", "my-password")
 )
 
-func NewEmailController(db *gorm.DB, task_manager *asynq.Client) *EmailController {
+func NewEmailController(db *gorm.DB) *EmailController {
 	return &EmailController{
 		db,
-		task_manager,
 	}
 }
 
@@ -78,7 +75,7 @@ func (ec *EmailController) CheckInEmail(e *emailmodel.EmailModel) (string, error
 		return "", err
 	}
 
-	return doubleOptInLink, nil
+	return token, nil
 }
 
 func (ec *EmailController) AuthorizeEmail(token string) error {
@@ -129,6 +126,63 @@ func (ec *EmailController) AuthorizeEmail(token string) error {
 	}
 
 	err = email_sender.SendEmail(email.Email, "Email confirmado", template)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ec *EmailController) ResendEmail(token string) error {
+	email_model := emailmodel.EmailModel{}
+
+	tokenClaims, err := shared.CompareTokenAndReturnClaims(token)
+
+	if err != nil {
+		return err
+	}
+
+	userClaims := tokenClaims.(*shared.Claims)
+
+	fetch, err := email_model.SelectOneByEmail(ec.db, userClaims.Email)
+
+	if err != nil {
+		return err
+	}
+
+	if fetch == nil {
+		return errors.New(EmailNotFound)
+	}
+
+	port, err := strconv.Atoi(MAILTRAP_PORT)
+
+	if err != nil {
+		return err
+	}
+
+	email_sender := shared.GenerateEmailSender(MAILTRAP_HOST, port, MAILTRAP_USERNAME, MAILTRAP_PASSWORD)
+
+	new_token, err := shared.GenerateToken(jwt.MapClaims{
+		"email": fetch.Email,
+		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	confirmationLink := fmt.Sprintf("http://localhost:3000/api/v1/emails/authorize?token=%s", new_token)
+
+	template, err := utils.LoadTemplate("internal/views/templates/confirmation.html", utils.EmailData{
+		ConfirmLink: confirmationLink,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	err = email_sender.SendEmail(fetch.Email, "Confirme seu email", template)
 
 	if err != nil {
 		return err

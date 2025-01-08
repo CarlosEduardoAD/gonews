@@ -21,7 +21,6 @@ import (
 
 type JobController struct{}
 
-// required: client
 func NewJobController() *JobController {
 	return &JobController{}
 }
