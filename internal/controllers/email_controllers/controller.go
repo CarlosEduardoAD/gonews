@@ -3,6 +3,7 @@ package email_controllers
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/CarlosEduardoAD/go-news/internal/shared"
 	"github.com/CarlosEduardoAD/go-news/internal/utils"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -110,6 +112,8 @@ func (ec *EmailController) AuthorizeEmail(token string) error {
 	err = job_controller.CreateTask(jobmodel.NewSendEmailJob(email.Id, email.Email, utils.ReturnNextMonday(), "send_email"))
 
 	if err != nil {
+		log.Println(err)
+		logrus.Error(shared.GenerateError(err))
 		return err
 	}
 
@@ -174,7 +178,7 @@ func (ec *EmailController) ResendEmail(token string) error {
 
 	confirmationLink := fmt.Sprintf("http://localhost:3000/api/v1/emails/authorize?token=%s", new_token)
 
-	template, err := utils.LoadTemplate("internal/views/templates/confirmation.html", utils.EmailData{
+	template, err := utils.LoadTemplate("internal/views/templates/check_in.html", utils.EmailData{
 		ConfirmLink: confirmationLink,
 	})
 

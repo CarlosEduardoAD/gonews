@@ -68,14 +68,12 @@ func AuthorizationRoute(c echo.Context) error {
 
 	next_front_url := env.GetEnv("NEXT_FRONT_URL", "http://localhost:3001")
 
-	return c.Redirect(http.StatusAccepted, next_front_url+"/accepted")
+	return c.Redirect(http.StatusMovedPermanently, next_front_url+"/accepted")
 }
 
 func ResendRoute(c echo.Context) error {
 	db := c.Get("db").(*gorm.DB)
 	token := c.QueryParam("token")
-
-	log.Println("token: ", token)
 
 	controller := email_controllers.NewEmailController(db)
 	err := controller.ResendEmail(token)

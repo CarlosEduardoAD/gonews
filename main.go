@@ -21,6 +21,7 @@ import (
 	"github.com/gocraft/work"
 	"github.com/gomodule/redigo/redis"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 )
 
@@ -66,8 +67,16 @@ func runEchoServer(ctx context.Context, shutdown chan struct{}) {
 		db := db.GenereateDB()
 		db.AutoMigrate(emailmodel.EmailModel{})
 
+		e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins:     []string{"*"},
+			AllowCredentials: true,
+			AllowMethods:     []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
+			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAccessControlAllowOrigin, echo.HeaderAccessControlAllowCredentials, echo.HeaderAccessControlAllowHeaders},
+		}))
+
 		e.Use(middlewares.DbMiddleware(db))
 		e.Use(middlewares.LogrusMiddleware)
+		e.Static("/images", "internal/views/images")
 
 		route_group := e.Group("/api/v1/emails")
 		http_server.UseEmailRoutes(route_group)
@@ -117,15 +126,13 @@ func runWorkerServer(ctx context.Context) {
 	// Stop the pool
 	pool.Stop()
 
-	logger.Infoln("Servidor Asynq encerrado com sucesso")
+	logger.Infoln("Servidor Worker encerrado com sucesso")
 }
 
 func (c *Context) HandleEmailDelivery(work *work.Job) error {
 
 	controller := jobcontrollers.NewJobController()
 	err := controller.ExecuteTask(work)
-
-	log.Println("err: ", err)
 
 	if err != nil {
 		log.Println("err: ", err)
