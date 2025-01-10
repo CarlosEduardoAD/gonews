@@ -33,10 +33,12 @@ func CheckInRoute(c echo.Context) error {
 	token, err := controller.CheckInEmail(email)
 
 	if err != nil && err.Error() == "invalid email" {
+		log.Println("err: ", err)
 		return echo.NewHTTPError(http.StatusBadRequest, shared.GenerateError(err))
 	}
 
 	if err != nil {
+		log.Println("err: ", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, shared.GenerateError(err))
 	}
 
