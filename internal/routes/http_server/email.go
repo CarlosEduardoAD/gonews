@@ -17,9 +17,6 @@ func UseEmailRoutes(group *echo.Group) {
 	group.GET("/authorize", AuthorizationRoute)
 	group.GET("/dismiss", DismissRoute)
 	group.POST("/resend", ResendRoute)
-	group.GET("/status", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, "aight!")
-	})
 }
 
 func CheckInRoute(c echo.Context) error {

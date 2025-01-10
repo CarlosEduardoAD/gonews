@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
@@ -80,6 +81,10 @@ func runEchoServer(ctx context.Context, shutdown chan struct{}) {
 
 		route_group := e.Group("/api/v1/emails")
 		http_server.UseEmailRoutes(route_group)
+
+		e.GET("/", func(c echo.Context) error {
+			return c.String(http.StatusOK, "Up and running!")
+		})
 
 		e.Logger.Fatal(e.Start(":3000"))
 	}()
