@@ -80,8 +80,6 @@ func (sej *SendEmailJob) AddAndEnqueueTask() error {
 		return err
 	}
 
-	// Não esquecer de colocar o next monday
-
 	_, err = enqueuer.EnqueueIn("send_email", utils.ReturnNextMonday(), work.Q{"id": sej.Id, "email": sej.Email, "ttd": sej.TTD})
 
 	if err != nil {

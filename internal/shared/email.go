@@ -69,7 +69,7 @@ func (es *EmailSender) SendEmail(to string, subject string, body string) error {
 	}
 
 	m := gomail.NewMessage()
-	m.SetHeader("From", "karl.devcontato@gmail.com")
+	m.SetHeader("From", "thegolangnewsletter@gmail.com")
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", body)

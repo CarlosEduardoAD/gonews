@@ -42,3 +42,26 @@ func GenereateDB() *gorm.DB {
 
 	return instance
 }
+
+func GenereateDBTest() *gorm.DB {
+	once.Do(func() {
+		host := env.GetEnv("POSTGRES_HOST", "db")
+		password := env.GetEnv("POSTGRES_PASSWORD", "admin")
+		user := env.GetEnv("POSTGRES_USER", "admin")
+		database := "gonews_test"
+
+		sslmode := "disable"
+
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=%s", host, user, password, database, sslmode)
+		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+		if err != nil {
+			log.Println("Erro ao conectar ao banco de dados")
+			log.Fatal(err)
+		}
+
+		instance = db
+	})
+
+	return instance
+}

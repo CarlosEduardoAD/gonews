@@ -2,6 +2,7 @@ package email_controllers
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/CarlosEduardoAD/go-news/internal/config/db"
@@ -12,8 +13,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Mock da função LoadTemplate para testes
+
 func TestCheckInEmail(t *testing.T) {
-	psql_db := db.GenereateDB()
+	psql_db := db.GenereateDBTest()
 	psql_db.AutoMigrate(&emailmodel.EmailModel{})
 
 	ec := NewEmailController(psql_db)
@@ -22,13 +25,15 @@ func TestCheckInEmail(t *testing.T) {
 
 	link, err := ec.CheckInEmail(email)
 
+	log.Println(err)
+
 	assert.Nil(t, err)
 	assert.NotNil(t, link)
 	assert.NotEmpty(t, link)
 }
 
 func TestFailToAuthorizeEmail(t *testing.T) {
-	psql_db := db.GenereateDB()
+	psql_db := db.GenereateDBTest()
 	psql_db.AutoMigrate(&emailmodel.EmailModel{})
 	valid_token := "invalid-token"
 
@@ -40,13 +45,19 @@ func TestFailToAuthorizeEmail(t *testing.T) {
 }
 
 func TestAuthorizeEmail(t *testing.T) {
-	psql_db := db.GenereateDB()
+	psql_db := db.GenereateDBTest()
 	psql_db.AutoMigrate(&emailmodel.EmailModel{})
-	valid_token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFsc2tyby10ZXN0LWVtYWlsQHRlc3QuY29tIiwiZXhwIjoxNzM0NDU1MzY4fQ.dA_G9uq9zzT82FjAzzVXILSzyAmYtvsFMU2yoscpZY8"
 
 	ec := NewEmailController(psql_db)
+	email := emailmodel.NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
 
-	err := ec.AuthorizeEmail(valid_token)
+	link, err := ec.CheckInEmail(email)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, link)
+	assert.NotEmpty(t, link)
+
+	err = ec.AuthorizeEmail(link)
 
 	assert.Nil(t, err)
 }
@@ -60,11 +71,19 @@ func TestInvalidResendEmail(t *testing.T) {
 }
 
 func TestResendEmail(t *testing.T) {
-	session := db.GenereateDB()
-	session.AutoMigrate(&emailmodel.EmailModel{})
-	controller := NewEmailController(session)
+	psql_db := db.GenereateDBTest()
+	psql_db.AutoMigrate(&emailmodel.EmailModel{})
+	controller := NewEmailController(psql_db)
+	email := emailmodel.NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
+
+	link, err := controller.CheckInEmail(email)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, link)
+	assert.NotEmpty(t, link)
+
 	token, err := shared.GenerateToken(jwt.MapClaims{
-		"email": "alskro-test-email@test.com",
+		"email": email.Email,
 	})
 
 	assert.Nil(t, err)
@@ -75,13 +94,17 @@ func TestResendEmail(t *testing.T) {
 }
 
 func TestDismissEmail(t *testing.T) {
-	psql_db := db.GenereateDB()
+	psql_db := db.GenereateDBTest()
 	psql_db.AutoMigrate(&emailmodel.EmailModel{})
 
 	ec := NewEmailController(psql_db)
-	email := "alskro-test-email@test.com"
 
-	err := ec.DismissEmail(email)
+	email := emailmodel.NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
+	_, err := ec.CheckInEmail(email)
+
+	assert.Nil(t, err)
+
+	err = ec.DismissEmail(email.Email)
 
 	assert.Nil(t, err)
 }

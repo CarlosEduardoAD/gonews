@@ -11,7 +11,7 @@ import (
 )
 
 func TestCreateInvalidEmail(t *testing.T) {
-	psql_db := db.GenereateDB()
+	psql_db := db.GenereateDBTest()
 	psql_db.AutoMigrate(&EmailModel{})
 
 	email_model := NewEmailModel("invalid_email")
@@ -22,7 +22,7 @@ func TestCreateInvalidEmail(t *testing.T) {
 }
 
 func TestCreateEmail(t *testing.T) {
-	psql_db := db.GenereateDB()
+	psql_db := db.GenereateDBTest()
 	psql_db.AutoMigrate(&EmailModel{})
 
 	email_model := NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
@@ -32,34 +32,45 @@ func TestCreateEmail(t *testing.T) {
 }
 
 func TestSelectOneEmail(t *testing.T) {
-	psql_db := db.GenereateDB()
+	psql_db := db.GenereateDBTest()
 	psql_db.AutoMigrate(&EmailModel{})
 
-	email_model := EmailModel{}
-	result, err := email_model.SelectOne(psql_db, "1010d16b-3f43-486c-ae41-e7eb6b9f7717")
+	email_model := NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
+	err := email_model.Create(psql_db)
+
+	assert.Nil(t, err)
+
+	result, err := email_model.SelectOne(psql_db, email_model.Id)
 
 	assert.NotNil(t, result)
 	assert.Nil(t, err)
 }
 
 func TestSelectOneEmailByEmailString(t *testing.T) {
-	psql_db := db.GenereateDB()
+	psql_db := db.GenereateDBTest()
 	psql_db.AutoMigrate(&EmailModel{})
 
-	email_model := EmailModel{}
-	result, err := email_model.SelectOneByEmail(psql_db, "alskro.devcontato@gmail.com")
+	email_model := NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
+	err := email_model.Create(psql_db)
+
+	assert.Nil(t, err)
+
+	result, err := email_model.SelectOneByEmail(psql_db, email_model.Email)
 
 	assert.NotNil(t, result)
 	assert.Nil(t, err)
 }
 
 func TestAuthorizeEmail(t *testing.T) {
-	psql_db := db.GenereateDB()
+	psql_db := db.GenereateDBTest()
 	psql_db.AutoMigrate(&EmailModel{})
 
-	email_model := EmailModel{}
+	email_model := NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
+	err := email_model.Create(psql_db)
 
-	fetch, err := email_model.SelectOne(psql_db, "1010d16b-3f43-486c-ae41-e7eb6b9f7717")
+	assert.Nil(t, err)
+
+	fetch, err := email_model.SelectOne(psql_db, email_model.Id)
 
 	assert.NotNil(t, fetch)
 	assert.Nil(t, err)
@@ -71,12 +82,14 @@ func TestAuthorizeEmail(t *testing.T) {
 }
 
 func TestDismissEmail(t *testing.T) {
-	psql_db := db.GenereateDB()
+	psql_db := db.GenereateDBTest()
 	psql_db.AutoMigrate(&EmailModel{})
+	email_model := NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
+	err := email_model.Create(psql_db)
 
-	email_model := EmailModel{}
+	assert.Nil(t, err)
 
-	fetch, err := email_model.SelectOne(psql_db, "1010d16b-3f43-486c-ae41-e7eb6b9f7717")
+	fetch, err := email_model.SelectOne(psql_db, email_model.Id)
 
 	assert.NotNil(t, fetch)
 	assert.Nil(t, err)
@@ -89,11 +102,15 @@ func TestDismissEmail(t *testing.T) {
 }
 
 func TestDeleteEmail(t *testing.T) {
-	psql_db := db.GenereateDB()
+	psql_db := db.GenereateDBTest()
 	psql_db.AutoMigrate(&EmailModel{})
 
-	email_model := EmailModel{}
-	fetch, err := email_model.SelectOne(psql_db, "1010d16b-3f43-486c-ae41-e7eb6b9f7717")
+	email_model := NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
+	err := email_model.Create(psql_db)
+
+	assert.Nil(t, err)
+
+	fetch, err := email_model.SelectOne(psql_db, email_model.Id)
 
 	assert.NotNil(t, fetch)
 	assert.Nil(t, err)

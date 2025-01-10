@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TODO: ao terminar os testes, por favor, EXECUTE FLUSHDB no redis
+
 func TestInvalidVerifyMonday(t *testing.T) {
 	sendEmailJob := NewSendEmailJob("1", "test@gmail.com", int64(time.Now().Second()), "")
 
