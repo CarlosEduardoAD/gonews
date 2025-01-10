@@ -86,6 +86,10 @@ func runEchoServer(ctx context.Context, shutdown chan struct{}) {
 			return c.String(http.StatusOK, "Up and running!")
 		})
 
+		e.HEAD("/", func(c echo.Context) error {
+			return c.String(http.StatusOK, "Up and running!")
+		})
+
 		e.Logger.Fatal(e.Start(":3000"))
 	}()
 
