@@ -7,6 +7,7 @@ import (
 
 	"github.com/CarlosEduardoAD/go-news/internal/models/consts"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
@@ -50,6 +51,11 @@ func (em *EmailModel) Create(session *gorm.DB) error {
 
 	ctx := session.Create(em)
 	if ctx.Error != nil {
+		if pgError, ok := ctx.Error.(*pgconn.PgError); ok {
+			if pgError.Code == "23505" {
+				return errors.New("email already exists")
+			}
+		}
 		return ctx.Error
 	}
 
