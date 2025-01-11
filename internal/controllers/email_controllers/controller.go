@@ -39,17 +39,12 @@ func NewEmailController(db *gorm.DB) *EmailController {
 	}
 }
 
-func (ec *EmailController) CheckInEmail(e *emailmodel.EmailModel) (string, error) {
-	err := e.Create(ec.db)
+func (ec *EmailController) CheckInEmail(e string) (string, error) {
 
 	server_url := env.GetEnv("SERVER_URL", "http://localhost:3000")
 
-	if err != nil {
-		return "", err
-	}
-
 	token, err := shared.GenerateToken(jwt.MapClaims{
-		"email": e.Email,
+		"email": e,
 		"exp":   time.Now().Add(time.Hour * 24).Unix(),
 	})
 
@@ -71,7 +66,7 @@ func (ec *EmailController) CheckInEmail(e *emailmodel.EmailModel) (string, error
 		return "", err
 	}
 
-	err = email_sender.SendEmail(e.Email, "Confirme seu email", template)
+	err = email_sender.SendEmail(e, "Confirme seu email", template)
 
 	if err != nil {
 		return "", err
@@ -89,27 +84,27 @@ func (ec *EmailController) AuthorizeEmail(token string) error {
 
 	claims := result.(*shared.Claims)
 
-	email_model := emailmodel.EmailModel{}
-	email, err := email_model.SelectOneByEmail(ec.db, claims.Email)
+	email_model := emailmodel.NewEmailModel(claims.Email)
+	err = email_model.Create(ec.db)
 
 	if err != nil {
 		return err
 	}
 
-	if email == nil {
+	if email_model.Email == "" {
 		return errors.New(EmailNotFound)
 	}
 
-	email.Authorized = true
+	email_model.Authorized = true
 
-	err = email.Update(ec.db)
+	err = email_model.Update(ec.db)
 
 	if err != nil {
 		return err
 	}
 
 	job_controller := jobcontrollers.NewJobController()
-	err = job_controller.CreateTask(jobmodel.NewSendEmailJob(email.Id, email.Email, utils.ReturnNextMonday(), "send_email"))
+	err = job_controller.CreateTask(jobmodel.NewSendEmailJob(email_model.Id, email_model.Email, utils.ReturnNextMonday(), "send_email"))
 
 	if err != nil {
 		log.Println(err)
@@ -129,7 +124,7 @@ func (ec *EmailController) AuthorizeEmail(token string) error {
 		return nil
 	}
 
-	err = email_sender.SendEmail(email.Email, "Email confirmado", template)
+	err = email_sender.SendEmail(email_model.Email, "Email confirmado", template)
 
 	if err != nil {
 		return err

@@ -23,7 +23,7 @@ func TestCheckInEmail(t *testing.T) {
 
 	email := emailmodel.NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
 
-	link, err := ec.CheckInEmail(email)
+	link, err := ec.CheckInEmail(email.Email)
 
 	log.Println(err)
 
@@ -51,7 +51,7 @@ func TestAuthorizeEmail(t *testing.T) {
 	ec := NewEmailController(psql_db)
 	email := emailmodel.NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
 
-	link, err := ec.CheckInEmail(email)
+	link, err := ec.CheckInEmail(email.Email)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, link)
@@ -76,7 +76,7 @@ func TestResendEmail(t *testing.T) {
 	controller := NewEmailController(psql_db)
 	email := emailmodel.NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
 
-	link, err := controller.CheckInEmail(email)
+	link, err := controller.CheckInEmail(email.Email)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, link)
@@ -100,7 +100,7 @@ func TestDismissEmail(t *testing.T) {
 	ec := NewEmailController(psql_db)
 
 	email := emailmodel.NewEmailModel(fmt.Sprintf("%s@test.com", utils.GenerateRandomString(8)))
-	_, err := ec.CheckInEmail(email)
+	_, err := ec.CheckInEmail(email.Email)
 
 	assert.Nil(t, err)
 

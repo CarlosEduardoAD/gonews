@@ -1,6 +1,7 @@
 package http_server
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
@@ -19,18 +20,34 @@ func UseEmailRoutes(group *echo.Group) {
 	group.POST("/resend", ResendRoute)
 }
 
+type CheckInRequest struct {
+	Email string `json:"email"`
+}
+
 func CheckInRoute(c echo.Context) error {
 	db := c.Get("db").(*gorm.DB)
-	e := &emailmodel.SaveEmailModelDTO{}
+	e := &CheckInRequest{}
 
 	if err := c.Bind(e); err != nil {
 		log.Println("err: ", err)
 		return echo.NewHTTPError(http.StatusUnprocessableEntity, shared.GenerateError(err))
 	}
 
-	email := emailmodel.NewEmailModel(e.Email)
 	controller := email_controllers.NewEmailController(db)
-	token, err := controller.CheckInEmail(email)
+
+	select_email := emailmodel.EmailModel{}
+	select_email.Email = e.Email
+	email, err := select_email.SelectOneByEmail(db, e.Email)
+
+	if err != nil && err.Error() != "record not found" {
+		return echo.NewHTTPError(http.StatusInternalServerError, shared.GenerateError(err))
+	}
+
+	if email != nil {
+		return echo.NewHTTPError(http.StatusConflict, shared.GenerateError(errors.New("email already exists")))
+	}
+
+	token, err := controller.CheckInEmail(e.Email)
 
 	if err != nil && err.Error() == "invalid email" {
 		log.Println("err: ", err)
@@ -61,7 +78,6 @@ func AuthorizationRoute(c echo.Context) error {
 	}
 
 	if err != nil {
-		log.Println("err: ", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, shared.GenerateError(err))
 	}
 
