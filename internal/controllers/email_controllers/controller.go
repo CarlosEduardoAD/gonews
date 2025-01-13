@@ -158,7 +158,6 @@ func (ec *EmailController) VerifyEmail(token string) error {
 }
 
 func (ec *EmailController) ResendEmail(token string) error {
-	email_model := emailmodel.EmailModel{}
 
 	tokenClaims, err := shared.CompareTokenAndReturnClaims(token)
 
@@ -167,16 +166,6 @@ func (ec *EmailController) ResendEmail(token string) error {
 	}
 
 	userClaims := tokenClaims.(*shared.Claims)
-
-	fetch, err := email_model.SelectOneByEmail(ec.db, userClaims.Email)
-
-	if err != nil {
-		return err
-	}
-
-	if fetch == nil {
-		return errors.New(EmailNotFound)
-	}
 
 	port, err := strconv.Atoi(MAILTRAP_PORT)
 
@@ -187,7 +176,7 @@ func (ec *EmailController) ResendEmail(token string) error {
 	email_sender := shared.GenerateEmailSender(MAILTRAP_HOST, port, MAILTRAP_USERNAME, MAILTRAP_PASSWORD)
 
 	new_token, err := shared.GenerateToken(jwt.MapClaims{
-		"email": fetch.Email,
+		"email": userClaims.Email,
 		"exp":   time.Now().Add(time.Hour * 24).Unix(),
 	})
 
@@ -205,7 +194,7 @@ func (ec *EmailController) ResendEmail(token string) error {
 		return err
 	}
 
-	err = email_sender.SendEmail(fetch.Email, "Confirme seu email", template)
+	err = email_sender.SendEmail(userClaims.Email, "Confirme seu email", template)
 
 	if err != nil {
 		return err
