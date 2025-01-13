@@ -23,7 +23,13 @@ func ReturnNextMonday() int64 {
 	nowDay := int(now.Weekday())
 
 	daysUntilNextMonday := (8 - nowDay) % weekDays
+
+	if daysUntilNextMonday == 0 {
+		daysUntilNextMonday = 7 // Se hoje é segunda, vamos para a próxima
+	}
+
 	nextMonday := now.AddDate(0, 0, daysUntilNextMonday)
+	nextMonday = time.Date(nextMonday.Year(), nextMonday.Month(), nextMonday.Day(), 8, 0, 0, 0, nextMonday.Location())
 
 	return int64(nextMonday.Unix())
 }

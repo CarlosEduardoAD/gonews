@@ -3,7 +3,6 @@ package jobmodel
 import (
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/CarlosEduardoAD/go-news/internal/config/env"
@@ -81,8 +80,6 @@ func (sej *SendEmailJob) AddAndEnqueueTask() error {
 	if err != nil {
 		return err
 	}
-
-	log.Println("sej: ", utils.ReturnNextMonday())
 
 	_, err = enqueuer.EnqueueIn("send_email", utils.ReturnNextMonday()-time.Now().Unix(), work.Q{"id": sej.Id, "email": sej.Email, "ttd": sej.TTD})
 
