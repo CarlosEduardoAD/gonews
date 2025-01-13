@@ -133,6 +133,30 @@ func (ec *EmailController) AuthorizeEmail(token string) error {
 	return nil
 }
 
+func (ec *EmailController) VerifyEmail(token string) error {
+	email_model := emailmodel.EmailModel{}
+
+	result, err := shared.CompareTokenAndReturnClaims(token)
+
+	if err != nil {
+		return err
+	}
+
+	claims := result.(*shared.Claims)
+
+	fetch, err := email_model.SelectOneByEmail(ec.db, claims.Email)
+
+	if err != nil {
+		return err
+	}
+
+	if !fetch.Authorized {
+		return errors.New(EmailNotFound)
+	}
+
+	return nil
+}
+
 func (ec *EmailController) ResendEmail(token string) error {
 	email_model := emailmodel.EmailModel{}
 
