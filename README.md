@@ -1,6 +1,6 @@
 ## GoNews
 
-# GoNews é uma aplicação web desenvolvida em Go que permite aos usuários acessar e visualizar notícias de diversas fontes de forma eficiente e organizada. A aplicação utiliza Docker para facilitar a implantação e garantir um ambiente consistente.
+GoNews é uma aplicação web desenvolvida em Go que permite aos usuários acessar e visualizar notícias de diversas fontes de forma eficiente e organizada. A aplicação utiliza Docker para facilitar a implantação e garantir um ambiente consistente.
 
 -----
 
